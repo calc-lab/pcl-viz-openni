@@ -221,12 +221,12 @@ void GLWidget::drawPointCloud()
     for (auto elem:drawingelements){
 
         if (elem.type == POINTS){
+            glPointSize(elem.pointsize);
             glBegin(GL_POINTS);
             if (elem.colors.size() == elem.pts.size()){
                 for (int i=0; i<elem.pts.size(); i++){
                     glColor3f(elem.colors[i].r/255.0, elem.colors[i].g/255.0, elem.colors[i].b/255.0);
                     glVertex3f(elem.pts[i].x, elem.pts[i].y, elem.pts[i].z);
-                    glPointSize(elem.pointsize[i]);
 
                 }
             }
@@ -250,12 +250,12 @@ void GLWidget::drawPointCloud()
             glEnd();
 
             //画特征点
+            glPointSize(elem.pointsize);
             glBegin(GL_POINTS);
             for (int i=0; i<(elem.pts.size()-2); i+=3){
                 glColor3f(elem.colors[i].r/255.0, elem.colors[i].g/255.0, elem.colors[i].b/255.0);
                 //glColor3f(1.0, 0.0, 0.0);
                 glVertex3f(elem.pts[i].x, elem.pts[i].y, elem.pts[i].z);
-                glPointSize(elem.pointsize[i]);
             }
             glEnd();
 

@@ -101,7 +101,6 @@ void MainWindow::slot_timer()
 
     std::vector<point3fi> pos;
     std::vector<color3b> rgb;
-    std::vector<int> siz;
 
     for (auto pt_: laserCloud){
         point3fi pt;
@@ -114,19 +113,17 @@ void MainWindow::slot_timer()
             color.r = color.g = color.b = 128;
             pos.push_back(pt);
             rgb.push_back(color);
-            siz.push_back(2);
         }
     }
     oneelem.pts = pos;
     oneelem.colors = rgb;
-    oneelem.pointsize = siz;
+    oneelem.pointsize = 2;
     oneelem.type = POINTS;
     elems.push_back(oneelem);
 
 
     pos.clear();
     rgb.clear();
-    siz.clear();
     assert(laserCloudOri.points.size() == coeffSel.points.size());
     int featureNum = laserCloudOri.points.size();
     for (int idx = 1; idx < featureNum; idx++){
@@ -136,16 +133,14 @@ void MainWindow::slot_timer()
         pt.y = laserCloudOri.points[idx].y;
         pt.z = laserCloudOri.points[idx].z;
         genRandomColor(color);
-        float siz_ = 12; // round(coeffSel.points[idx].z * coeffSel.points[idx].z * 50);
         if (true) {
             pos.push_back(pt);
             rgb.push_back(color);
-            siz.push_back(siz_);
         }
     }
     oneelem.pts = pos;
     oneelem.colors = rgb;
-    oneelem.pointsize = siz;
+    oneelem.pointsize = 4;
     oneelem.type = POINTS;
     elems.push_back(oneelem);
 

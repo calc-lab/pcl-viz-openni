@@ -17,7 +17,7 @@ enum DrawingType{
 struct DrawingElem{
     std::vector<point3fi> pts;
     std::vector<color3b> colors;
-    std::vector<int> pointsize;
+    int pointsize;
     DrawingType type;
 };
 
