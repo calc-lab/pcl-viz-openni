@@ -72,9 +72,9 @@ laserCloud(),
 laserCloudOri(),
 coeffSel()
 {
-    if (pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/pcl-301.pcd", laserCloud) == -1
-     || pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/ori-301.pcd", laserCloudOri) == -1
-     || pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/eff-301.pcd", coeffSel) == -1)
+    if (pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/pcl-430.pcd", laserCloud) == -1
+     || pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/ori-430.pcd", laserCloudOri) == -1
+     || pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/eff-430.pcd", coeffSel) == -1)
     {
       PCL_ERROR ("Couldn't read PCD files\n");
       return;
@@ -101,6 +101,7 @@ void MainWindow::slot_timer()
 
     std::vector<point3fi> pos;
     std::vector<color3b> rgb;
+    std::vector<int> siz;
 
     for (auto pt_: laserCloud){
         point3fi pt;
@@ -113,17 +114,19 @@ void MainWindow::slot_timer()
             color.r = color.g = color.b = 128;
             pos.push_back(pt);
             rgb.push_back(color);
+            siz.push_back(1);
         }
     }
     oneelem.pts = pos;
     oneelem.colors = rgb;
-    oneelem.pointsize = 2;
+    oneelem.pointsize = siz;
     oneelem.type = POINTS;
     elems.push_back(oneelem);
 
 
     pos.clear();
     rgb.clear();
+    siz.clear();
     assert(laserCloudOri.points.size() == coeffSel.points.size());
     int featureNum = laserCloudOri.points.size();
     for (int idx = 1; idx < featureNum; idx++){
@@ -133,14 +136,18 @@ void MainWindow::slot_timer()
         pt.y = laserCloudOri.points[idx].y;
         pt.z = laserCloudOri.points[idx].z;
         genRandomColor(color);
+        int siz_ = round((coeffSel.points[idx].x * coeffSel.points[idx].x
+                        + coeffSel.points[idx].y * coeffSel.points[idx].y
+                        + coeffSel.points[idx].z * coeffSel.points[idx].z) * 10) + 1;
         if (true) {
             pos.push_back(pt);
             rgb.push_back(color);
+            siz.push_back(12);
         }
     }
     oneelem.pts = pos;
     oneelem.colors = rgb;
-    oneelem.pointsize = 4;
+    oneelem.pointsize = siz;
     oneelem.type = POINTS;
     elems.push_back(oneelem);
 
