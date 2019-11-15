@@ -72,9 +72,9 @@ laserCloud(),
 laserCloudOri(),
 coeffSel()
 {
-    if (pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/pcl-301.pcd", laserCloud) == -1
-     || pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/ori-301.pcd", laserCloudOri) == -1
-     || pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/eff-301.pcd", coeffSel) == -1)
+    if (pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/pcl-431.pcd", laserCloud) == -1
+     || pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/ori-431.pcd", laserCloudOri) == -1
+     || pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/eff-431.pcd", coeffSel) == -1)
     {
       PCL_ERROR ("Couldn't read PCD files\n");
       return;
@@ -124,9 +124,10 @@ void MainWindow::slot_timer()
 
     pos.clear();
     rgb.clear();
+    std::vector<float> weights; weights.clear();
     assert(laserCloudOri.points.size() == coeffSel.points.size());
     int featureNum = laserCloudOri.points.size();
-    for (int idx = 1; idx < featureNum; idx++){
+    for (size_t idx = 1; idx < featureNum; idx++){
         point3fi pt;
         color3b color;
         pt.x = laserCloudOri.points[idx].x;
@@ -136,11 +137,39 @@ void MainWindow::slot_timer()
         if (true) {
             pos.push_back(pt);
             rgb.push_back(color);
+            weights.push_back(coeffSel.points[idx].x * coeffSel.points[idx].x
+                        + coeffSel.points[idx].y * coeffSel.points[idx].y
+                        + coeffSel.points[idx].z * coeffSel.points[idx].z);
         }
+    }
+    float max_ = *max_element(weights.begin(), weights.end());
+    float min_ = *min_element(weights.begin(), weights.end());
+    float upper = 0.75 * max_ + 0.25 * min_;
+    float mid = 0.5 * max_ + 0.5 * min_;
+    float below = 0.25 * max_ + 0.75 * min_;
+    DrawingElem elems_[5];
+    for (size_t idx = 0; idx < rgb.size(); idx++) {
+        color3b color;
+        if (weights[idx] < below) {
+            color.r = 0; color.g = 0; color.b = 255;
+        }
+        else if (weights[idx] < mid) {
+            color.r = 0; color.g = 255; color.b = 255;
+        }
+        else if (weights[idx] < upper) {
+            color.r = 0; color.g = 255; color.b = 0;
+        }
+        else if (weights[idx] < max_) {
+            color.r = 255; color.g = 255; color.b = 0;
+        }
+        else {
+            color.r = 255; color.g = 0; color.b = 0;
+        }
+        rgb[idx] = color;
     }
     oneelem.pts = pos;
     oneelem.colors = rgb;
-    oneelem.pointsize = 4;
+    oneelem.pointsize = 8;
     oneelem.type = POINTS;
     elems.push_back(oneelem);
 
