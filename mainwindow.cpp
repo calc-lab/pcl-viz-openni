@@ -147,29 +147,67 @@ void MainWindow::slot_timer()
     float upper = 0.75 * max_ + 0.25 * min_;
     float mid = 0.5 * max_ + 0.5 * min_;
     float below = 0.25 * max_ + 0.75 * min_;
-    DrawingElem elems_[5];
+    std::vector<point3fi> pos0;
+    std::vector<color3b> rgb0;
+    std::vector<point3fi> pos1;
+    std::vector<color3b> rgb1;
+    std::vector<point3fi> pos2;
+    std::vector<color3b> rgb2;
+    std::vector<point3fi> pos3;
+    std::vector<color3b> rgb3;
+    std::vector<point3fi> pos4;
+    std::vector<color3b> rgb4;
     for (size_t idx = 0; idx < rgb.size(); idx++) {
-        color3b color;
+
         if (weights[idx] < below) {
-            color.r = 0; color.g = 0; color.b = 255;
+            pos0.push_back(pos[idx]);
+            color3b color; color.r = 0; color.g = 0; color.b = 255;
+            rgb0.push_back(color);
         }
         else if (weights[idx] < mid) {
-            color.r = 0; color.g = 255; color.b = 255;
+            pos1.push_back(pos[idx]);
+            color3b color; color.r = 0; color.g = 255; color.b = 255;
+            rgb1.push_back(color);
         }
         else if (weights[idx] < upper) {
-            color.r = 0; color.g = 255; color.b = 0;
+            pos2.push_back(pos[idx]);
+            color3b color; color.r = 0; color.g = 255; color.b = 0;
+            rgb2.push_back(color);
         }
         else if (weights[idx] < max_) {
-            color.r = 255; color.g = 255; color.b = 0;
+            pos3.push_back(pos[idx]);
+            color3b color; color.r = 255; color.g = 255; color.b = 0;
+            rgb3.push_back(color);
         }
         else {
-            color.r = 255; color.g = 0; color.b = 0;
+            pos4.push_back(pos[idx]);
+            color3b color; color.r = 255; color.g = 0; color.b = 0;
+            rgb4.push_back(color);
         }
-        rgb[idx] = color;
     }
-    oneelem.pts = pos;
-    oneelem.colors = rgb;
+    oneelem.pts = pos0;
+    oneelem.colors = rgb0;
+    oneelem.pointsize = 2;
+    oneelem.type = POINTS;
+    elems.push_back(oneelem);
+    oneelem.pts = pos1;
+    oneelem.colors = rgb1;
+    oneelem.pointsize = 6;
+    oneelem.type = POINTS;
+    elems.push_back(oneelem);
+    oneelem.pts = pos2;
+    oneelem.colors = rgb2;
     oneelem.pointsize = 8;
+    oneelem.type = POINTS;
+    elems.push_back(oneelem);
+    oneelem.pts = pos3;
+    oneelem.colors = rgb3;
+    oneelem.pointsize = 10;
+    oneelem.type = POINTS;
+    elems.push_back(oneelem);
+    oneelem.pts = pos4;
+    oneelem.colors = rgb4;
+    oneelem.pointsize = 12;
     oneelem.type = POINTS;
     elems.push_back(oneelem);
 
