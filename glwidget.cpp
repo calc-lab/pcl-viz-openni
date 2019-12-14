@@ -55,7 +55,8 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(QGLFormat(QGL::SampleBuffers), p
     xRot = 0;
     yRot = 0;
     zRot = 0;
-    zEye = 60;
+    zEye = 20;
+
 
     xEye = yEye = 0;
     setFocusPolicy(Qt::StrongFocus);

@@ -72,9 +72,9 @@ laserCloud(),
 laserCloudOri(),
 coeffSel()
 {
-    if (pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/pcl-431.pcd", laserCloud) == -1
-     || pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/ori-431.pcd", laserCloudOri) == -1
-     || pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/eff-431.pcd", coeffSel) == -1)
+    if (pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/pcl-430.pcd", laserCloud) == -1
+     || pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/ori-430.pcd", laserCloudOri) == -1
+     || pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/eff-430.pcd", coeffSel) == -1)
     {
       PCL_ERROR ("Couldn't read PCD files\n");
       return;
@@ -96,6 +96,13 @@ MainWindow::~MainWindow()
 
 void MainWindow::slot_timer()
 {
+    float y_min = 999, y_max = -999;
+    for (auto p : laserCloud) {
+        if (p.y < y_min) y_min = p.y;
+        if (p.y > y_max) y_max = p.y;
+    }
+    printf("[y_min, %f], [y_max, %f]\n", y_min, y_max);
+
     std::vector<DrawingElem> elems;
     DrawingElem oneelem;
 
@@ -187,12 +194,12 @@ void MainWindow::slot_timer()
     }
     oneelem.pts = pos0;
     oneelem.colors = rgb0;
-    oneelem.pointsize = 2;
+    oneelem.pointsize = 1;
     oneelem.type = POINTS;
     elems.push_back(oneelem);
     oneelem.pts = pos1;
     oneelem.colors = rgb1;
-    oneelem.pointsize = 6;
+    oneelem.pointsize = 4;
     oneelem.type = POINTS;
     elems.push_back(oneelem);
     oneelem.pts = pos2;
@@ -202,12 +209,12 @@ void MainWindow::slot_timer()
     elems.push_back(oneelem);
     oneelem.pts = pos3;
     oneelem.colors = rgb3;
-    oneelem.pointsize = 10;
+    oneelem.pointsize = 12;
     oneelem.type = POINTS;
     elems.push_back(oneelem);
     oneelem.pts = pos4;
     oneelem.colors = rgb4;
-    oneelem.pointsize = 12;
+    oneelem.pointsize = 16;
     oneelem.type = POINTS;
     elems.push_back(oneelem);
 
