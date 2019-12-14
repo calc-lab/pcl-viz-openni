@@ -23,20 +23,31 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 public slots:
-    void slot_timer();
-    void slot_btn_start();
-    void slot_btn_stop();
+    void draw();
+    void slotPlayPause();
+    void slotExit();
+    void slotNextFrame();
+    void slotPreviousFrame();
+    void slotSkipForward();
+    void slotSkipBackward();
 private:
+    void loadPointCloud();
+    void drawSpecifiedFrame();
 
+private:
+    Ui::MainWindow *ui;
     GLWidget *glviewer;
     LogParser logobj;
     QTimer *timer;
 
-    pcl::PointCloud<pcl::PointXYZI> laserCloud;
-    pcl::PointCloud<pcl::PointXYZI> laserCloudOri;
-    pcl::PointCloud<pcl::PointXYZI> coeffSel;
-private:
-    Ui::MainWindow *ui;
+    QString _root;
+    int _lowerBound;
+    int _upperBound;
+    int _frameCounter;
+
+    pcl::PointCloud<pcl::PointXYZI> _cornerPointsSharp;
+    pcl::PointCloud<pcl::PointXYZI> _surfPointsFlat;
+    pcl::PointCloud<pcl::PointXYZI> _laserCloudFullRes;
 };
 
 #endif // MAINWINDOW_H

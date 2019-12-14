@@ -25,6 +25,34 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="pushButton_skipBackward">
+        <property name="text">
+         <string>skip backward</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_previous">
+        <property name="text">
+         <string>previous</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_next">
+        <property name="text">
+         <string>next</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_skipForward">
+        <property name="text">
+         <string>skip forward</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="pushButton_stop">
         <property name="text">
          <string>stop</string>
@@ -43,8 +71,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>993</width>
-         <height>630</height>
+         <width>997</width>
+         <height>647</height>
         </rect>
        </property>
       </widget>
@@ -58,7 +86,7 @@
      <x>0</x>
      <y>0</y>
      <width>1017</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

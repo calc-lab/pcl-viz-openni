@@ -3,6 +3,183 @@
 #include <time.h>
 #include <random>
 #include <QDebug>
+
+MainWindow::MainWindow(QWidget *parent) :
+QMainWindow(parent),
+ui(new Ui::MainWindow),
+_frameCounter(0),
+_lowerBound(0),
+_upperBound(9573),
+_cornerPointsSharp(),
+_surfPointsFlat(),
+_laserCloudFullRes() {
+    _root = "/media/sukie/Ivy/dataset_20191210/dataset_0/dataset/";
+    loadPointCloud();
+
+    ui->setupUi(this);
+    glviewer = new GLWidget;
+    ui->scrollArea->setWidget(glviewer);
+
+    timer = new QTimer(this);
+
+    connect(timer, SIGNAL(timeout()), this, SLOT(draw()));
+    connect(ui->pushButton_start, SIGNAL(clicked(bool)), this, SLOT(slotPlayPause()));
+    connect(ui->pushButton_stop, SIGNAL(clicked(bool)), this, SLOT(slotExit()));
+    connect(ui->pushButton_next, SIGNAL(clicked(bool)), this, SLOT(slotNextFrame()));
+    connect(ui->pushButton_previous, SIGNAL(clicked(bool)), this, SLOT(slotPreviousFrame()));
+    connect(ui->pushButton_skipForward, SIGNAL(clicked(bool)), this, SLOT(slotSkipForward()));
+    connect(ui->pushButton_skipBackward, SIGNAL(clicked(bool)), this, SLOT(slotSkipBackward()));
+
+    timer->start(50);
+}
+
+MainWindow::~MainWindow() {
+    delete ui;
+}
+
+void MainWindow::draw() {
+    float z_min = 999,z_max = -999;
+    for (auto p : _laserCloudFullRes) {
+        if (p.z < z_min) z_min = p.z;
+        if (p.z > z_max) z_max = p.z;
+    }
+
+    std::vector<DrawingElem> elems;
+    DrawingElem oneelem;
+
+    // The Full-resolution PointCloud
+    std::vector<point3fi> pos;
+    std::vector<color3b> rgb;
+    for (auto pt_: _laserCloudFullRes){
+        point3fi pt;
+        color3b color;
+        pt.x = pt_.x ;
+        pt.y = pt_.y;
+        pt.z = pt_.z;
+
+        if (true) {
+            color.r = color.g = color.b = 128;
+            pos.push_back(pt);
+            rgb.push_back(color);
+        }
+    }
+    oneelem.pts = pos;
+    oneelem.colors = rgb;
+    oneelem.pointsize = 2;
+    oneelem.type = POINTS;
+    elems.push_back(oneelem);
+
+    // The Surface-feature PointCloud
+    pos.clear();
+    rgb.clear();
+    for (auto pt_: _surfPointsFlat){
+        point3fi pt;
+        color3b color;
+        pt.x = pt_.x ;
+        pt.y = pt_.y;
+        pt.z = pt_.z;
+
+        if (true) {
+            color.r = 0;
+            color.g = 0;
+            color.b = 255;
+            pos.push_back(pt);
+            rgb.push_back(color);
+        }
+    }
+    oneelem.pts = pos;
+    oneelem.colors = rgb;
+    oneelem.pointsize = 6;
+    oneelem.type = POINTS;
+    elems.push_back(oneelem);
+
+    // The Corner-feature PointCloud
+    pos.clear();
+    rgb.clear();
+    for (auto pt_: _cornerPointsSharp){
+        point3fi pt;
+        color3b color;
+        pt.x = pt_.x ;
+        pt.y = pt_.y;
+        pt.z = pt_.z;
+
+        if (true) {
+            color.r = 255;
+            color.g = 0;
+            color.b = 0;
+            pos.push_back(pt);
+            rgb.push_back(color);
+        }
+    }
+    oneelem.pts = pos;
+    oneelem.colors = rgb;
+    oneelem.pointsize = 6;
+    oneelem.type = POINTS;
+    elems.push_back(oneelem);
+
+    glviewer->setPointCloudFrame(elems);
+    timer->stop();
+    ui->statusBar->showMessage(QString("frame: %1, point number: %2, corner feature number: %3, flat feature number: %4, min height: %5, max height: %6")
+                               .arg(QString::number(_frameCounter,10))
+                               .arg(QString::number(_laserCloudFullRes.size(),10))
+                               .arg(QString::number(_cornerPointsSharp.size(),10))
+                               .arg(QString::number(_surfPointsFlat.size(),10))
+                               .arg(QString::number(z_min,'f',3))
+                               .arg(QString::number(z_max,'f',3)));
+}
+
+void MainWindow::slotPlayPause() {
+    timer->start(50);
+}
+
+void MainWindow::slotExit() {
+    exit(1);
+}
+
+void MainWindow::slotNextFrame() {
+    _frameCounter += 10;
+    drawSpecifiedFrame();
+}
+
+void MainWindow::slotPreviousFrame() {
+    _frameCounter-=10;
+    drawSpecifiedFrame();
+}
+
+void MainWindow::slotSkipForward() {
+    _frameCounter += 100;
+    drawSpecifiedFrame();
+}
+
+void MainWindow::slotSkipBackward() {
+    _frameCounter -= 100;
+    drawSpecifiedFrame();
+}
+
+void MainWindow::loadPointCloud() {
+    QString cornerPointsSharpName = _root + QString::number(_frameCounter,10) + "/cornerPointsSharp.pcd";
+    QString surfPointsFlatName = _root + QString::number(_frameCounter,10) + "/surfPointsFlat.pcd";
+    QString laserCloudFullResName = _root + QString::number(_frameCounter,10) + "/laserCloudFullRes.pcd";
+
+    if (pcl::io::loadPCDFile<pcl::PointXYZI> (cornerPointsSharpName.toStdString(), _cornerPointsSharp) == -1
+     || pcl::io::loadPCDFile<pcl::PointXYZI> (surfPointsFlatName.toStdString(), _surfPointsFlat) == -1
+     || pcl::io::loadPCDFile<pcl::PointXYZI> (laserCloudFullResName.toStdString(), _laserCloudFullRes) == -1) {
+      PCL_ERROR ("Couldn't read PCD files\n");
+      return;
+    }
+}
+
+void MainWindow::drawSpecifiedFrame() {
+    while (_frameCounter > _upperBound) {
+        _frameCounter = _frameCounter - _upperBound + _lowerBound - 1;
+    }
+    while (_frameCounter < _lowerBound) {
+        _frameCounter= _frameCounter - _lowerBound + _upperBound + 1;
+    }
+    loadPointCloud();
+    timer->start(50);
+}
+
 void hsv2Rgb(double h, double s, double v, uchar &r_out, uchar &g_out, uchar &b_out)
 {
     double r,g,b;
@@ -52,8 +229,8 @@ void hsv2Rgb(double h, double s, double v, uchar &r_out, uchar &g_out, uchar &b_
     g_out = uchar(g*255.0);
     b_out = uchar(b*255.0);
 }
-void genRandomColor(color3b & color)
-{
+
+void genRandomColor(color3b & color) {
     double random_h = rand()%100/(double)101;
 
     double golden_ratio_conjugate = 0.618033988749895;
@@ -63,172 +240,4 @@ void genRandomColor(color3b & color)
         random_h -= 1.0;
 
     hsv2Rgb(random_h, 0.99, 0.99, color.r, color.g, color.b);
-}
-
-MainWindow::MainWindow(QWidget *parent) :
-QMainWindow(parent),
-ui(new Ui::MainWindow),
-laserCloud(),
-laserCloudOri(),
-coeffSel()
-{
-    if (pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/pcl-430.pcd", laserCloud) == -1
-     || pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/ori-430.pcd", laserCloudOri) == -1
-     || pcl::io::loadPCDFile<pcl::PointXYZI> ("/home/sukie/code/loam-feature-vis/cmake-build-debug/export/eff-430.pcd", coeffSel) == -1)
-    {
-      PCL_ERROR ("Couldn't read PCD files\n");
-      return;
-    }
-
-    ui->setupUi(this);
-    glviewer = new GLWidget;
-    ui->scrollArea->setWidget(glviewer);
-    timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(slot_timer()));
-    connect(ui->pushButton_start, SIGNAL(clicked(bool)), this, SLOT(slot_btn_start()));
-    connect(ui->pushButton_stop, SIGNAL(clicked(bool)), this, SLOT(slot_btn_stop()));
-}
-
-MainWindow::~MainWindow()
-{
-    delete ui;
-}
-
-void MainWindow::slot_timer()
-{
-    float y_min = 999, y_max = -999;
-    for (auto p : laserCloud) {
-        if (p.y < y_min) y_min = p.y;
-        if (p.y > y_max) y_max = p.y;
-    }
-    printf("[y_min, %f], [y_max, %f]\n", y_min, y_max);
-
-    std::vector<DrawingElem> elems;
-    DrawingElem oneelem;
-
-    std::vector<point3fi> pos;
-    std::vector<color3b> rgb;
-
-    for (auto pt_: laserCloud){
-        point3fi pt;
-        color3b color;
-        pt.x = pt_.x ;
-        pt.y = pt_.y;
-        pt.z = pt_.z;
-
-        if (true) {
-            color.r = color.g = color.b = 128;
-            pos.push_back(pt);
-            rgb.push_back(color);
-        }
-    }
-    oneelem.pts = pos;
-    oneelem.colors = rgb;
-    oneelem.pointsize = 2;
-    oneelem.type = POINTS;
-    elems.push_back(oneelem);
-
-
-    pos.clear();
-    rgb.clear();
-    std::vector<float> weights; weights.clear();
-    assert(laserCloudOri.points.size() == coeffSel.points.size());
-    int featureNum = laserCloudOri.points.size();
-    for (size_t idx = 1; idx < featureNum; idx++){
-        point3fi pt;
-        color3b color;
-        pt.x = laserCloudOri.points[idx].x;
-        pt.y = laserCloudOri.points[idx].y;
-        pt.z = laserCloudOri.points[idx].z;
-        genRandomColor(color);
-        if (true) {
-            pos.push_back(pt);
-            rgb.push_back(color);
-            weights.push_back(coeffSel.points[idx].x * coeffSel.points[idx].x
-                        + coeffSel.points[idx].y * coeffSel.points[idx].y
-                        + coeffSel.points[idx].z * coeffSel.points[idx].z);
-        }
-    }
-    float max_ = *max_element(weights.begin(), weights.end());
-    float min_ = *min_element(weights.begin(), weights.end());
-    float upper = 0.75 * max_ + 0.25 * min_;
-    float mid = 0.5 * max_ + 0.5 * min_;
-    float below = 0.25 * max_ + 0.75 * min_;
-    std::vector<point3fi> pos0;
-    std::vector<color3b> rgb0;
-    std::vector<point3fi> pos1;
-    std::vector<color3b> rgb1;
-    std::vector<point3fi> pos2;
-    std::vector<color3b> rgb2;
-    std::vector<point3fi> pos3;
-    std::vector<color3b> rgb3;
-    std::vector<point3fi> pos4;
-    std::vector<color3b> rgb4;
-    for (size_t idx = 0; idx < rgb.size(); idx++) {
-
-        if (weights[idx] < below) {
-            pos0.push_back(pos[idx]);
-            color3b color; color.r = 0; color.g = 0; color.b = 255;
-            rgb0.push_back(color);
-        }
-        else if (weights[idx] < mid) {
-            pos1.push_back(pos[idx]);
-            color3b color; color.r = 0; color.g = 255; color.b = 255;
-            rgb1.push_back(color);
-        }
-        else if (weights[idx] < upper) {
-            pos2.push_back(pos[idx]);
-            color3b color; color.r = 0; color.g = 255; color.b = 0;
-            rgb2.push_back(color);
-        }
-        else if (weights[idx] < max_) {
-            pos3.push_back(pos[idx]);
-            color3b color; color.r = 255; color.g = 255; color.b = 0;
-            rgb3.push_back(color);
-        }
-        else {
-            pos4.push_back(pos[idx]);
-            color3b color; color.r = 255; color.g = 0; color.b = 0;
-            rgb4.push_back(color);
-        }
-    }
-    oneelem.pts = pos0;
-    oneelem.colors = rgb0;
-    oneelem.pointsize = 1;
-    oneelem.type = POINTS;
-    elems.push_back(oneelem);
-    oneelem.pts = pos1;
-    oneelem.colors = rgb1;
-    oneelem.pointsize = 4;
-    oneelem.type = POINTS;
-    elems.push_back(oneelem);
-    oneelem.pts = pos2;
-    oneelem.colors = rgb2;
-    oneelem.pointsize = 8;
-    oneelem.type = POINTS;
-    elems.push_back(oneelem);
-    oneelem.pts = pos3;
-    oneelem.colors = rgb3;
-    oneelem.pointsize = 12;
-    oneelem.type = POINTS;
-    elems.push_back(oneelem);
-    oneelem.pts = pos4;
-    oneelem.colors = rgb4;
-    oneelem.pointsize = 16;
-    oneelem.type = POINTS;
-    elems.push_back(oneelem);
-
-    glviewer->setPointCloudFrame(elems);
-    slot_btn_stop();
-
-}
-
-void MainWindow::slot_btn_start()
-{
-    timer->start(50);
-}
-
-void MainWindow::slot_btn_stop()
-{
-    timer->stop();
 }
