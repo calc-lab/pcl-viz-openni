@@ -72,10 +72,9 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    std::string rawptsfilename = "/home/pku-m/201/project/Loam3DViz/test_data/offroad/pcl-240.txt";
-    std::string featptsfilename = "/home/pku-m/201/project/Loam3DViz/test_data/offroad/log-238-0.txt";
+    std::string path = "/media/sukie/EAGET/demo_data/2";
 
-    logobj.loadLog(rawptsfilename, featptsfilename);
+    logobj.loadLog(path);
 
     glviewer = new GLViewer();
 
@@ -122,9 +121,9 @@ MainWindow::~MainWindow()
 
 void MainWindow::slot_timer()
 {
-    std::vector<point4d> rawpts = logobj.getRawptbuf();
-    std::vector<linefeat> linefeats = logobj.getLinefeatbuf();
-    std::vector<planefeat> planefeats = logobj.getPlanefeatbuf();
+    std::vector<point4d> laserCloudFullRes = logobj.laserCloudFullRes();
+    std::vector<point4d> lineFeaturePts = logobj.lineFeaturePts();
+    std::vector<point4d> planeFeaturePts = logobj.planeFeaturePts();
 
     glNewList(displaylistbase, GL_COMPILE_AND_EXECUTE);
 
@@ -132,8 +131,8 @@ void MainWindow::slot_timer()
     glPointSize(3);
     glBegin(GL_POINTS);
 
-    for (int i = 0; i < rawpts.size(); ++i) {
-        glVertex3f(rawpts[i].x, rawpts[i].y, rawpts[i].z);
+    for (auto p: laserCloudFullRes) {
+        glVertex3f(p.x, p.y, p.z);
     }
 
     glEnd();
@@ -143,99 +142,6 @@ void MainWindow::slot_timer()
     glviewer->makeCurrent();
     glviewer->updateGL();
     timer->stop();
-
-//    std::vector<DrawingElem> elems;
-//    DrawingElem oneelem;
-
-//    std::vector<point3fi> points;
-//    std::vector<color3b> colors;
-
-//    point3fi pt;
-//    color3b color;
-//    double min_y,max_y;
-
-//    //原始点云
-//    points.clear();
-//    colors.clear();
-//    for (int i=0; i<rawpts.size(); i++){
-//        pt.x = rawpts[i].x;
-//        pt.y = rawpts[i].y;
-//        pt.z = rawpts[i].z;
-
-//        min_y = -2;
-//        max_y = 2.5;
-
-//        //            double intens = (pt.y - min_y*1.0)/(max_y-min_y*1.0)*255.0;
-
-//        //            color.r = std::max<int>(0, std::min<int>(255, int(intens)));
-//        //            color.b = 255 - color.r;
-
-//        //            color.g = color.r>128 ? color.b*2 : color.r*2;
-
-//        color.r = color.g = color.b = 128;
-
-//        points.push_back(pt);
-//        colors.push_back(color);
-//    }
-//    oneelem.pts = points;
-//    oneelem.colors = colors;
-//    oneelem.pointsize = 2;
-//    oneelem.type = POINTS;
-//    elems.push_back(oneelem);
-
-//    //线特征
-//    points.clear();
-//    colors.clear();
-//    for (auto item:linefeats){
-//        genRandomColor(color);
-//        //线
-//        points.push_back(point3fi(item.pt.x, item.pt.y, item.pt.z));
-//        colors.push_back(color);
-
-//        points.push_back(point3fi(item.linehead.x, item.linehead.y, item.linehead.z));
-//        colors.push_back(color);
-//        points.push_back(point3fi(item.linetail.x, item.linetail.y, item.linetail.z));
-//        colors.push_back(color);
-//    }
-//    oneelem.pts = points;
-//    oneelem.colors = colors;
-//    oneelem.pointsize = 12;
-//    oneelem.type = LINES;
-//    elems.push_back(oneelem);
-
-//    //面特征
-//    points.clear();
-//    colors.clear();
-//    for (auto item:planefeats){
-//        pt.x = item.pt.x;
-//        pt.y = item.pt.y;
-//        pt.z = item.pt.z;
-
-//        genRandomColor(color);
-
-//        points.push_back(pt);
-//        colors.push_back(color);
-
-//        points.push_back(point3fi(item.plane_pt1.x, item.plane_pt1.y, item.plane_pt1.z));
-//        colors.push_back(color);
-
-//        points.push_back(point3fi(item.plane_pt2.x, item.plane_pt2.y, item.plane_pt2.z));
-//        colors.push_back(color);
-
-//        points.push_back(point3fi(item.plane_pt3.x, item.plane_pt3.y, item.plane_pt3.z));
-//        colors.push_back(color);
-//    }
-
-//    oneelem.pts = points;
-//    oneelem.colors = colors;
-//    oneelem.pointsize = 12;
-//    oneelem.type = PLANES;
-//    elems.push_back(oneelem);
-
-//    glviewer->setPointCloudFrame(elems);
-
-//   slot_btn_stop();
-
 }
 
 void MainWindow::slot_btn_start()
